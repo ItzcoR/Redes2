@@ -19,6 +19,7 @@ int main(int argc, char *argv[])
   unsigned short echoServPort;  /* Echo server port */
   char *servlP;                 /* Server IP address (dotted quad) */
   char *echoString;             /* String to send to echo server */
+  char response[RCVBUFSIZE];
   char echoBuffer[RCVBUFSIZE];  /* Buffer for echo string */
   unsigned int echoStringLen;   /* Length of string to echo */
   int bytesRcvd, totalBytesRcvd;/* Bytes read in single recv()
@@ -62,32 +63,26 @@ int main(int argc, char *argv[])
     //totalBytesRcvd = 0;
     printf("Sent: "); /* Setup to print the echoed string */
     printf("%s\n", echoString );
-    while (echoString[0] != '@') {
+    while (1) {
       if ((bytesRcvd = recv(sock, echoBuffer, RCVBUFSIZE, 0)) <= 0)
         DieWithError("recv() failed or connection closed prematurely");
       printf("Received from serv: ");
       totalBytesRcvd += bytesRcvd; /* Keep tally of total bytes */
       //echoBuffer[bytesRcvd] = '\0'; /* Terminate the string! */
-      printf(echoBuffer); /* Print the echo buffer */
+      printf("%s\n",echoBuffer); /* Print the echo buffer */
       printf("\n" );
-      fgets(echoString,sizeof(echoString),stdin);
-      if (send(sock, echoString, echoStringLen, 0) != echoStringLen)
-        DieWithError("send() sent a different number of bytes than expected");
-        //totalBytesRcvd = 0;
-        //printf("Received: "); /* Setup to print the echoed string */
-        /* Receive up to the buffer size (minus 1 to leave space for
-        a null terminator) bytes from the sender */
-
-        totalBytesRcvd += bytesRcvd; /* Keep tally of total bytes */
-        //echoBuffer[bytesRcvd] = '\0'; /* Terminate the string! */
-        printf(echoBuffer); /* Print the echo buffer */
-
-        printf("\n" );
-        fgets(echoString,sizeof(echoString),stdin);
+      fgets(response,RCVBUFSIZE,stdin);
+      if (response[0]=='@'){
+        printf("Entered break condition");
+        break;
+      }
+      
+      if (send(sock, response, sizeof(response), 0) < 0)
+        DieWithError("send() Failed");
     }
     printf("\n"); /* Print a final linefeed */
 
-    getchar();
+    //getchar();
     close(sock);
     exit(0);
   }

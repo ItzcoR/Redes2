@@ -60,20 +60,32 @@ int AcceptTCPConnection( int servSock){
 void HandleTCPClient(int clntSocket)
 {
   char echoBuffer[RCVBUFSIZE];
+  char stringtoSend[RCVBUFSIZE];
   int recvMsgSize;
-  //printf("Client Socket: %d\n", clntSocket);
-  /* Receive message from client */
-  if ((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0)) < 0)
-    DieWithError("First recv() failed") ;
-  /* Send received string and receive again until end of transmission */
-  while (recvMsgSize > 0) /* zero indicates end of transmission */
+  printf("Client Socket: %d\n", clntSocket);
+  
+
+  while (1) // @ indicates end of transmission
   {
-    /* Echo message back to client */
-    if (send(clntSocket, echoBuffer, recvMsgSize, 0) != recvMsgSize)
-      DieWithError("send() failed");
-    /* See if there is more data to receive */
+    /* Receive message from client */
     if ((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0)) < 0)
-      DieWithError("Extra recv() failed") ;
+      DieWithError("First recv() failed") ;
+    printf("Client Socket: %d\n", clntSocket);
+    printf("\nServer Recived:\n" );
+    printf("%s\n",echoBuffer); /* Print the echo buffer */
+    printf("Message to send to client:\n");
+    fgets(stringtoSend,RCVBUFSIZE,stdin);
+    if (stringtoSend[0] == '@'){
+      printf("Entered break condition");
+      break;
+    }
+
+    // Echo message back to client
+    if (send(clntSocket, stringtoSend, sizeof(stringtoSend), 0) < 0)
+      DieWithError("send() failed");
+    // See if there is more data to receive
+    //if ((recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0)) < 0)
+    //  DieWithError("Extra recv() failed") ;
   }
-  //close(clntSocket); /* Close client socket */
+  close(clntSocket); /* Close client socket */
 }
